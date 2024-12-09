@@ -63,7 +63,7 @@ To run the services, follow these steps:
     After starting the services, run the Python script to start processing the scraped URLs. You can specify the number of consumer-producer processes you want to run. For example:
 
     ```bash
-    python3 main.py --conprod=3
+    python3 main.py --conprod=3 --same-domain-name
     ```
 
     This will start **3 consumer-producer processes**. You can adjust the number as needed based on the scale of your scraping task.

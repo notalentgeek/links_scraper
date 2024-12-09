@@ -17,6 +17,7 @@ from src.utils.config import (
     URL_WAIT_TIMER,
 )
 from src.utils.logger import setup_logger
+from src.utils.string import get_domain
 
 # Logger
 logger = setup_logger()
@@ -58,22 +59,25 @@ def consumer_producer_service():
             message = consumer.consume_message()
 
             if message:
-                retrieved_url = message.get('value')
-                if retrieved_url:
+                retrieved_url_bytes = message.get('value')
+                if retrieved_url_bytes:
+                    retrieved_url = retrieved_url_bytes.decode('utf-8')
                     # Process the URL and extract links
-                    processed_urls = process_url(
-                        retrieved_url.decode('utf-8')
-                    )
+                    processed_urls = process_url(retrieved_url)
 
                     for processed_url in processed_urls:
                         # Only process URL from the same domain name.
-                        if processed_url in retrieved_url:
+                        if get_domain(processed_url) in retrieved_url:
+                            logger.info(f"Sending URL: {processed_url}")
+
                             # Send each URL to the producer
                             producer.send_message(
                                 key='url', value=processed_url)
 
                             # Ensure the message is sent
                             producer.flush()
+                        else:
+                            logger.info(f"Skipping URL: {processed_url}")
             else:
                 # Wait for 1 second before checking again
                 time.sleep(1)

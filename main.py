@@ -2,34 +2,42 @@ import threading  # Import threading module for timeout
 import time  # Import time module
 
 from selenium import webdriver
-from selenium.common.exceptions import StaleElementReferenceException, TimeoutException
+from selenium.common.exceptions import StaleElementReferenceException
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 
+DRIVER_PATH = '/usr/local/bin/chromedriver'
+URL_INTERVAL = 1
 URL_TIMEOUT = 10
 URL_WAIT_TIMER = 5  # Need to be smaller than URL_TIMEOUT
 
 # List of URLs to process
-urls = ['https://shopee.tw', 'https://www.naver.com/']
+URLS = ['https://shopee.tw', 'https://www.naver.com/']
 
-# Configure ChromeDriver
+# Configure ChromeDriver service.
+chrome_service = Service(DRIVER_PATH)
+
+# Configure ChromeDriver options.
 chrome_options = Options()
 # chrome_options.add_argument("--headless")
 chrome_options.add_argument("--disable-gpu")
 chrome_options.add_argument("--no-sandbox")
 chrome_options.add_argument(
-    "user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
+    "user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+    "(KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+)
 
-driver_path = "/usr/local/bin/chromedriver"
-service = Service(driver_path)
-driver = webdriver.Chrome(service=service, options=chrome_options)
+driver = webdriver.Chrome(service=chrome_service, options=chrome_options)
 
 # A flag to indicate if the thread should stop
+# Check: https://stackoverflow.com/questions/9731291/how-do-i-set-the-selenium-webdriver-get-timeout
 stop_flag = threading.Event()
 
 
 def process_url(url):
+    print(f"Processing URL: {url}")
+
     # Function to load the URL
     def load_url():
         try:
@@ -47,12 +55,14 @@ def process_url(url):
         thread.join(URL_TIMEOUT)  # Timeout after 60 seconds
         if thread.is_alive():
             # If the thread is still running, set the stop flag
-            print(f"Timeout: The page at {url} took longer than {
-                  URL_TIMEOUT} seconds to load.")
+            print(
+                f"Timeout: The page at {url} took longer than {URL_TIMEOUT} "
+                f"seconds to load."
+            )
             stop_flag.set()  # Signal the thread to stop (checked in `load_url`)
-            thread.join()  # Wait for the thread to finish cleanly
+            thread.join()    # Wait for the thread to finish cleanly
         else:
-            stop_flag.clear()  # Reset the flag for the next URL
+            stop_flag.clear()           # Reset the flag for the next URL
             time.sleep(URL_WAIT_TIMER)  # Allow for any redirection to complete
 
             # Wait for a short while to ensure any redirection completes
@@ -78,29 +88,32 @@ def process_url(url):
                         links.add(href)
                 except StaleElementReferenceException:
                     # Log a proper error message
-                    print(f"Warning: Element at index {
-                          idx} became stale and could not be accessed. Skipping this element.")
+                    print(
+                        f"Warning: Element at index {idx} became stale and "
+                        f"could not be accessed. Skipping this element."
+                    )
                 except Exception as e:
                     # Log unexpected errors with details
-                    print(f"Error: Failed to process element at index {
-                          idx} due to: {e}.")
+                    print(
+                        f"Error: Failed to process element at index {idx} "
+                        f"due to: {e}."
+                    )
 
             # Output all unique links
             links = list(links)
             print("Extracted Links:")
             for link in links:
                 print(link)
-
     except Exception as e:
         print(f"Error: {e}")
 
-    # After processing each URL, idle for 1 minute
-    print("Waiting for 1 minute before processing next URL...")
-    time.sleep(1)  # Idle for 1 minute
+    # Idle after processing each URL
+    print("Waiting before processing next URL...")
+    time.sleep(URL_INTERVAL)
 
 
 # Iterate over each URL in the list
-for url in urls:
+for url in URLS:
     process_url(url)
 
 # Clean up

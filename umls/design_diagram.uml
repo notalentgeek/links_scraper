@@ -1,0 +1,9 @@
+@startuml
+entity "Producer" as producer
+entity "Consumer" as consumer
+entity "Kafka" as kafka
+
+producer -> kafka : Sends message with URL (homepage)
+consumer -> kafka : Consumes message with URL to scrape
+consumer -> kafka : Sends scraped URLs back
+@enduml

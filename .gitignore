@@ -1,0 +1,67 @@
+# Byte-Compiled/Optimized/DLL Files
+__pycache__/
+*.py[cod]
+*.pyo
+*.so
+
+# C Extensions
+*.c
+
+# Distribution/Packaging
+*.egg
+*.egg-info/
+build/
+dist/
+eggs/
+sdist/
+wheels/
+
+# Django Stuffs
+*.log
+*.pot
+*.pyc
+db.sqlite3
+
+# Flask Stuffs
+instance/
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+
+# macOS
+.DS_Store
+
+# mypy
+.mypy_cache/
+.dmypy.json
+
+# Pytest
+.cache/
+.pytest_cache/
+
+# System Files
+Thumbs.db
+Desktop.ini
+
+# Testing
+htmlcov/
+
+# venv folders
+.Python
+.env/
+.venv/
+env/
+venv/
+venv.bak/
+
+# IDEs/Editors
+.idea/
+.vscode/
+*.swp
+*.swo
+*.swn
+*.un~
+
+# Virtual Environments
+pip-log.txt
+pip-delete-this-directory.txt

@@ -3,8 +3,6 @@ version: '3.8'
 services:
   kafka:
     image: apache/kafka:latest
-    volumes:
-      - kafka_data:/var/lib/kafka/data
     ports:
       - 9092:9092
     networks:
@@ -29,11 +27,8 @@ services:
     depends_on:
       - kafka
       - mongo
+    command: ["python3", "main.py", "--producer=1"]
 
 networks:
   urls-scraper:
     driver: bridge
-
-volumes:
-  postgres_data:
-  kafka_data:

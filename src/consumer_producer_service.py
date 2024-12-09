@@ -32,7 +32,7 @@ driver = setup_chrome_driver()
 stop_flag = threading.Event()
 
 
-def consumer_producer_service():
+def consumer_producer_service(same_domain_only):
     '''Entry point for the consumer-producer service.'''
     # Initialize the consumer and producer
     consumer = Consumer(
@@ -69,8 +69,11 @@ def consumer_producer_service():
                     found_urls = process_url(retrieved_url)
 
                     for found_url in found_urls:
-                        # Only process URL from the same domain name.
-                        if get_domain(found_url) in retrieved_url:
+                        # Determine if we need to check for the same domain
+                        if same_domain_only and get_domain(found_url) not in retrieved_url:
+                            logger.info(f'Skipping URL: {found_url}')
+                        else:
+                            # Log the action
                             logger.info(f'Sending URL: {found_url}')
 
                             # Send each URL to the producer
@@ -81,12 +84,10 @@ def consumer_producer_service():
                             producer.flush()
 
                             # Record to database
-                            db.insert_one(  # Use insert_one to save the document
+                            db.insert_one(
                                 {'retrieved_url': retrieved_url,
                                     'found_url': found_url}
                             )
-                        else:
-                            logger.info(f'Skipping URL: {found_url}')
             else:
                 # Wait for 1 second before checking again
                 time.sleep(1)

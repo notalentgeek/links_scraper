@@ -6,7 +6,15 @@ from utils.config import CHROME_DRIVER_PATH
 
 
 def setup_chrome_driver():
-    """Set up and return a configured Chrome WebDriver instance."""
+    '''Set up and return a configured Chrome WebDriver instance.
+
+    This function initializes a Chrome WebDriver with specified service and
+    options. It returns a fully configured Chrome WebDriver instance ready
+    for use in web scraping or automation tasks.
+
+    Returns:
+        webdriver.Chrome: A configured Chrome WebDriver instance.
+    '''
     # Configure ChromeDriver service
     chrome_service = Service(CHROME_DRIVER_PATH)
 
@@ -20,5 +28,5 @@ def setup_chrome_driver():
         '(KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
     )
 
-    # Return the WebDriver instance
+    # Return the ChromeDriver instance
     return webdriver.Chrome(service=chrome_service, options=chrome_options)

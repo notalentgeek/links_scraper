@@ -10,6 +10,6 @@ URL_WAIT_TIMER = 5  # Time to wait in seconds for loading the web page
 URLS = ['https://shopee.tw', 'https://www.naver.com/']
 
 # Kafka configuration
-KAFKA_BROKER = 'kafka:9092'
+KAFKA_BROKER = 'localhost:9092'
 KAFKA_CLIENT_ID = 'url-producer'
 KAFKA_TOPIC = 'urls'

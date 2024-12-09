@@ -4,6 +4,6 @@ entity "Consumer" as consumer
 entity "Kafka" as kafka
 
 producer -> kafka : Sends message with URL (homepage)
-consumer -> kafka : Consumes message with URL to scrape
-consumer -> kafka : Sends scraped URLs back
+consumer -> kafka : Consumes message with URL to scrape for URLs
+consumer -> kafka : Sends messages with scraped URLs
 @enduml

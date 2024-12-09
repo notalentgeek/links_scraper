@@ -1,5 +1,5 @@
-import threading  # Import threading module for timeout
-import time  # Import time module
+import threading
+import time
 
 from selenium import webdriver
 from selenium.common.exceptions import StaleElementReferenceException
@@ -7,16 +7,18 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 
-DRIVER_PATH = '/usr/local/bin/chromedriver'
-URL_INTERVAL = 1
-URL_TIMEOUT = 10
-URL_WAIT_TIMER = 5  # Need to be smaller than URL_TIMEOUT
+CHROME_DRIVER_PATH = '/usr/local/bin/chromedriver'
+URL_INTERVAL = 1  # Time to wait in second before processing the next URL.
+URL_TIMEOUT = 10  # Time to wait in second for loading the URL.
+
+# Need to be smaller than URL_TIMEOUT
+URL_WAIT_TIMER = 5  # Time to wait in second for loading the web page.
 
 # List of URLs to process
 URLS = ['https://shopee.tw', 'https://www.naver.com/']
 
 # Configure ChromeDriver service.
-chrome_service = Service(DRIVER_PATH)
+chrome_service = Service(CHROME_DRIVER_PATH)
 
 # Configure ChromeDriver options.
 chrome_options = Options()
@@ -112,9 +114,12 @@ def process_url(url):
     time.sleep(URL_INTERVAL)
 
 
-# Iterate over each URL in the list
-for url in URLS:
-    process_url(url)
-
-# Clean up
-driver.quit()
+try:
+    while True:
+        for url in URLS:
+            process_url(url)
+except KeyboardInterrupt:
+    print("\nInterrupted by user. Cleaning up...")
+finally:
+    driver.quit()
+    print("Driver closed. Exiting program.")

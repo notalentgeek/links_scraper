@@ -5,7 +5,7 @@ from utils.config import KAFKA_BROKER, KAFKA_CLIENT_ID, KAFKA_TOPIC, URL_INTERVA
 from utils.logger import setup_logger
 
 # Logger
-logger = setup_logger(__name__)
+logger = setup_logger()
 
 
 def main():

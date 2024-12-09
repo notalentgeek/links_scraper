@@ -4,9 +4,9 @@ import time
 from selenium.common.exceptions import StaleElementReferenceException
 from selenium.webdriver.common.by import By
 
-from utils.chrome_driver import setup_chrome_driver
-from utils.config import URL_INTERVAL, URL_TIMEOUT, URL_WAIT_TIMER
-from utils.logger import setup_logger
+from src.utils.chrome_driver import setup_chrome_driver
+from src.utils.config import URL_INTERVAL, URL_TIMEOUT, URL_WAIT_TIMER
+from src.utils.logger import setup_logger
 
 # List of URLs to process
 URLS = ['https://shopee.tw', 'https://www.naver.com/']
@@ -91,6 +91,8 @@ def process_url(url):
             logger.info('Extracted Links:')
             for link in links:
                 logger.info(link)
+
+            return links
     except Exception as e:
         logger.info(f'Error: {e}')
 

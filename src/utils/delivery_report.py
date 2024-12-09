@@ -1,7 +1,7 @@
 from utils.logger import setup_logger
 
 # Logger
-logger = setup_logger(__name__)
+logger = setup_logger()
 
 
 def delivery_report(err, msg):

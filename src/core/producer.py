@@ -14,7 +14,7 @@ class Producer:
             client_id (str): The client ID to identify this producer.
             topic (str): The Kafka topic to which messages will be sent.
         """
-        self.logger = setup_logger(__name__)
+        self.logger = setup_logger()
         self.topic = topic
         self.conf = {
             'bootstrap.servers': broker,
@@ -38,7 +38,8 @@ class Producer:
                 value=value,
                 callback=callback
             )
-            self.logger.info(f"Message queued for key: {key}")
+            self.logger.info(
+                f"Message queued for key: {key} and value: {value}")
         except Exception as e:
             self.logger.error(f"Failed to produce message: {e}")
 

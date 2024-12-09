@@ -1,5 +1,6 @@
 import threading
 import time
+from queue import Queue
 
 from selenium.common.exceptions import StaleElementReferenceException
 from selenium.webdriver.common.by import By
@@ -83,70 +84,79 @@ def process_url(url):
     logger.info(f'Processing URL: {url}')
 
     # Function to load the URL
-    def load_url():
+    def load_url(queue):
         try:
             if not stop_flag.is_set():
                 driver.get(url)
+                time.sleep(URL_WAIT_TIMER)  # Allow some time for page to load
+                # Capture the current URL after redirection
+                current_url = driver.current_url
+                if url != current_url:
+                    logger.info(f'Redirected to: {current_url}')
+
+                # Find all <a> tags and extract valid URLs
+                link_elements = driver.find_elements(By.TAG_NAME, 'a')
+
+                urls = set()
+                for idx, element in enumerate(link_elements):
+                    try:
+                        href = element.get_attribute('href')
+                        if href and href.startswith('http'):
+                            urls.add(href)
+                    except StaleElementReferenceException:
+                        logger.warning(
+                            f'Warning: Element at index {
+                                idx} became stale and '
+                            f'could not be accessed.'
+                        )
+                    except Exception as e:
+                        logger.error(
+                            f'Error: Failed to process element at index {idx} '
+                            f'due to: {e}.'
+                        )
+
+                # Return URLs through the queue
+                queue.put(list(urls))
+
+            else:
+                logger.info(f"Stop flag is set, not loading the URL: {url}")
         except Exception as e:
             logger.error(f'Error while loading {url}: {e}')
+            queue.put([])  # Return an empty list on error
 
-    # Create a thread to load the URL
-    thread = threading.Thread(target=load_url, name=url)
+    # Create a queue to hold URLs extracted by the thread
+    url_queue = Queue()
+
+    # Create and start the thread to load the URL
+    thread = threading.Thread(target=load_url, args=(url_queue,), name=url)
     thread.start()
 
     # Wait for the thread to complete, with a timeout
     try:
-        thread.join(URL_TIMEOUT)  # Timeout after 60 seconds
+        thread.join(URL_TIMEOUT)  # Timeout after a specified duration
         if thread.is_alive():
-            # Log timeout and stop the thread if it's still running
             logger.warning(
                 f'Timeout: The page at {url} took longer than {URL_TIMEOUT} '
                 f'seconds to load.'
             )
-            stop_flag.set()  # Stop the thread
-            thread.join()    # Wait for the thread to finish
+            stop_flag.set()  # Signal the thread to stop
+            thread.join()    # Ensure the thread finishes cleanly
+            return []        # Return an empty
         else:
             stop_flag.clear()  # Reset the flag for the next URL
-            # Allow redirection to complete
-            time.sleep(URL_WAIT_TIMER)
+            # Retrieve the extracted URLs from the queue
+            extracted_urls = url_queue.get()
 
-            # Wait to ensure any redirection completes
-            time.sleep(5)
-
-            logger.info(f'Page loaded: {url}')
-            current_url = driver.current_url
-            if url != current_url:
-                logger.info(f'Redirected to: {current_url}')
-
-            # Find all <a> tags and extract valid URLs
-            link_elements = driver.find_elements(By.TAG_NAME, 'a')
-
-            urls = set()
-            for idx, element in enumerate(link_elements):
-                try:
-                    href = element.get_attribute('href')
-                    if href and href.startswith('http'):
-                        urls.add(href)
-                except StaleElementReferenceException:
-                    logger.warning(
-                        f'Warning: Element at index {idx} became stale and '
-                        f'could not be accessed.'
-                    )
-                except Exception as e:
-                    logger.error(
-                        f'Error: Failed to process element at index {idx} '
-                        f'due to: {e}.'
-                    )
-
-            # Return all unique URLs
-            urls = list(urls)
+            # Output all unique URLs
             logger.info('Extracted Links:')
-            for url in urls:
+            for url in extracted_urls:
                 logger.info(url)
 
-            return urls
+            return extracted_urls
+
     except Exception as e:
-        logger.info(f'Error: {e}')
+        logger.error(f'Error: {e}')
+        return []  # Return an empty list if any other error occurs
 
     # Idle after processing each URL
     logger.info('Waiting before processing next URL...')

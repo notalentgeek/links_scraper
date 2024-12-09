@@ -70,4 +70,4 @@ To run the services, follow these steps:
 
 ## Design Diagram
 
-![Design Diagram](http://www.plantuml.com/plantuml/proxy?src=https://raw.githubusercontent.com/notalentgeek/URLs_scraper/refs/heads/master/umls/design_diagram.uml)
+![Design Diagram](http://www.plantuml.com/plantuml/proxy?src=https://raw.githubusercontent.com/notalentgeek/links_scraper/refs/heads/master/umls/design_diagram.uml)

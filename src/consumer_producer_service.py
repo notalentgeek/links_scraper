@@ -12,15 +12,18 @@ from src.utils.config import (
     KAFKA_BROKER,
     KAFKA_CLIENT_ID,
     KAFKA_TOPIC,
-    URL_INTERVAL,
     URL_TIMEOUT,
     URL_WAIT_TIMER,
 )
 from src.utils.logger import setup_logger
+from src.utils.mongodb import setup_mongodb
 from src.utils.string import get_domain
 
 # Logger
 logger = setup_logger()
+
+# Logger
+db = setup_mongodb()
 
 # Chrome Driver
 driver = setup_chrome_driver()
@@ -30,7 +33,7 @@ stop_flag = threading.Event()
 
 
 def consumer_producer_service():
-    """Entry point for the consumer-producer service."""
+    '''Entry point for the consumer-producer service.'''
     # Initialize the consumer and producer
     consumer = Consumer(
         KAFKA_BROKER,
@@ -45,12 +48,12 @@ def consumer_producer_service():
     )
 
     logger.info(
-        f"Starting URL consumer, listening for messages on topic: "
-        f"{KAFKA_TOPIC}"
+        f'Starting URL consumer, listening for messages on topic: '
+        f'{KAFKA_TOPIC}'
     )
     logger.info(
-        f"Starting URL producer, sending messages to topic: "
-        f"{KAFKA_TOPIC}"
+        f'Starting URL producer, sending messages to topic: '
+        f'{KAFKA_TOPIC}'
     )
 
     try:
@@ -62,28 +65,34 @@ def consumer_producer_service():
                 retrieved_url_bytes = message.get('value')
                 if retrieved_url_bytes:
                     retrieved_url = retrieved_url_bytes.decode('utf-8')
-                    # Process the URL and extract links
-                    processed_urls = process_url(retrieved_url)
+                    # Process the URL and extract urls
+                    found_urls = process_url(retrieved_url)
 
-                    for processed_url in processed_urls:
+                    for found_url in found_urls:
                         # Only process URL from the same domain name.
-                        if get_domain(processed_url) in retrieved_url:
-                            logger.info(f"Sending URL: {processed_url}")
+                        if get_domain(found_url) in retrieved_url:
+                            logger.info(f'Sending URL: {found_url}')
 
                             # Send each URL to the producer
                             producer.send_message(
-                                key='url', value=processed_url)
+                                key='url', value=found_url)
 
                             # Ensure the message is sent
                             producer.flush()
+
+                            # Record to database
+                            db.insert_one(  # Use insert_one to save the document
+                                {'retrieved_url': retrieved_url,
+                                    'found_url': found_url}
+                            )
                         else:
-                            logger.info(f"Skipping URL: {processed_url}")
+                            logger.info(f'Skipping URL: {found_url}')
             else:
                 # Wait for 1 second before checking again
                 time.sleep(1)
     except KeyboardInterrupt:
-        logger.info("Stopping URL consumer...")
-        logger.info("Stopping URL producer...")
+        logger.info('Stopping URL consumer...')
+        logger.info('Stopping URL producer...')
     finally:
         consumer.close()  # Close the consumer
         producer.flush()  # Ensure all messages are sent
@@ -104,10 +113,10 @@ def process_url(url):
                     logger.info(f'Redirected to: {current_url}')
 
                 # Find all <a> tags and extract valid URLs
-                link_elements = driver.find_elements(By.TAG_NAME, 'a')
+                url_elements = driver.find_elements(By.TAG_NAME, 'a')
 
                 urls = set()
-                for idx, element in enumerate(link_elements):
+                for idx, element in enumerate(url_elements):
                     try:
                         href = element.get_attribute('href')
                         if href and href.startswith('http'):
@@ -128,7 +137,7 @@ def process_url(url):
                 queue.put(list(urls))
 
             else:
-                logger.info(f"Stop flag is set, not loading the URL: {url}")
+                logger.info(f'Stop flag is set, not loading the URL: {url}')
         except Exception as e:
             logger.error(f'Error while loading {url}: {e}')
             queue.put([])  # Return an empty list on error
@@ -157,7 +166,7 @@ def process_url(url):
             extracted_urls = url_queue.get()
 
             # Output all unique URLs
-            logger.info('Extracted Links:')
+            logger.info('Extracted URLs:')
             for url in extracted_urls:
                 logger.info(url)
 
@@ -167,10 +176,8 @@ def process_url(url):
         logger.error(f'Error: {e}')
         return []  # Return an empty list if any other error occurs
 
-    # Idle after processing each URL
-    logger.info('Waiting before processing next URL...')
-    time.sleep(URL_INTERVAL)
+    logger.info('Processing next URL...')
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     consumer_producer_service()

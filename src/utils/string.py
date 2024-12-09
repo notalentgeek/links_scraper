@@ -2,7 +2,7 @@ from urllib.parse import urlparse
 
 
 def get_domain(url):
-    """
+    '''
     Extract the domain from a given URL and remove the 'www.' prefix if it exists.
 
     This function parses the provided URL, extracts the netloc (domain),
@@ -20,7 +20,7 @@ def get_domain(url):
 
         >>> get_domain('http://example.org')
         'example.org'
-    """
+    '''
     # Parse the URL to extract the netloc (the domain part)
     parsed_url = urlparse(url)
 

@@ -2,27 +2,36 @@ version: '3.8'
 
 services:
   kafka:
-    image: apache/kafka:3.9.0
+    image: apache/kafka:latest
     volumes:
       - kafka_data:/var/lib/kafka/data
     ports:
       - 9092:9092
     networks:
-      - links-scraper
+      - urls-scraper
 
-  postgres:
-    image: postgres:latest
+  mongo:
+    image: mongo:latest
     environment:
-      POSTGRES_DB: links_scraper
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: admin
+      MONGO_INITDB_ROOT_USERNAME: username
+      MONGO_INITDB_ROOT_PASSWORD: password
     ports:
-      - 5432:5432
+      - 27017:27017
     networks:
-      - links-scraper
+      - urls-scraper
+
+  app:
+    build: .
+    volumes:
+      - ./:/app
+    networks:
+      - urls-scraper
+    depends_on:
+      - kafka
+      - mongo
 
 networks:
-  links-scraper:
+  urls-scraper:
     driver: bridge
 
 volumes:

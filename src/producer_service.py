@@ -15,7 +15,7 @@ logger = setup_logger()
 
 
 def producer_service():
-    """Entry point for the producer service."""
+    '''Entry point for the producer service.'''
     # Initialize the producer wrapper
     producer = Producer(
         KAFKA_BROKER,
@@ -24,7 +24,7 @@ def producer_service():
     )
 
     logger.info(
-        f"Starting URL producer, sending messages to topic: {KAFKA_TOPIC}")
+        f'Starting URL producer, sending messages to topic: {KAFKA_TOPIC}')
 
     try:
         while True:
@@ -35,14 +35,14 @@ def producer_service():
                 # Flush the producer buffer
                 producer.flush()
 
-                logger.info(f"Sent URL: {url}")
+                logger.info(f'Sent URL: {url}')
 
                 time.sleep(URL_INTERVAL)  # Wait before the next message
     except KeyboardInterrupt:
-        logger.info("Stopping URL producer...")
+        logger.info('Stopping URL producer...')
     finally:
         producer.flush()  # Ensure all messages are sent
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     producer_service()

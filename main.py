@@ -22,13 +22,13 @@ def create_processes(producer_count, conprod_count):
 def main():
     # Argument parser setup
     parser = argparse.ArgumentParser(
-        description="Start producer and consumer-producer services.")
+        description='Start producer and consumer-producer services.')
 
     # Define command-line arguments
     parser.add_argument('--producer', type=int, default=1,
-                        help="Number of producer processes to start")
+                        help='Number of producer processes to start')
     parser.add_argument('--conprod', type=int, default=1,
-                        help="Number of consumer-producer processes to start")
+                        help='Number of consumer-producer processes to start')
 
     # Parse the arguments
     args = parser.parse_args()
@@ -39,12 +39,12 @@ def main():
 
     # Validate input
     if producer_count < 1 or conprod_count < 1:
-        print("Error: The number of processes must be at least 1.")
+        print('Error: The number of processes must be at least 1.')
         sys.exit(1)
 
     print(
-        f"Starting {producer_count} producer(s) and {conprod_count} "
-        f"consumer-producer(s)"
+        f'Starting {producer_count} producer(s) and {conprod_count} '
+        f'consumer-producer(s)'
     )
 
     # Create and start the processes

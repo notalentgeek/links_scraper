@@ -5,7 +5,7 @@ logger = setup_logger()
 
 
 def delivery_report(err, msg):
-    """
+    '''
     Callback for reporting the delivery status of a Kafka message.
 
     This function is triggered by the Kafka producer for each message.
@@ -16,8 +16,8 @@ def delivery_report(err, msg):
             if the delivery was successful.
         msg (KafkaMessage): The Kafka message object containing metadata like
             topic and partition.
-    """
+    '''
     if err is not None:
-        logger.error(f"Delivery failed for message: {err}")
+        logger.error(f'Delivery failed for message: {err}')
     else:
-        logger.info(f"Message delivered to {msg.topic()} [{msg.partition()}]")
+        logger.info(f'Message delivered to {msg.topic()} [{msg.partition()}]')

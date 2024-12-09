@@ -1,4 +1,3 @@
-import logging
 import threading
 import time
 
@@ -7,6 +6,8 @@ from selenium.common.exceptions import StaleElementReferenceException
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
+
+from utils.logger import setup_logger
 
 CHROME_DRIVER_PATH = '/usr/local/bin/chromedriver'
 URL_INTERVAL = 1  # Time to wait in second before processing the next URL.
@@ -18,12 +19,8 @@ URL_WAIT_TIMER = 5  # Time to wait in second for loading the web page.
 # List of URLs to process
 URLS = ['https://shopee.tw', 'https://www.naver.com/']
 
-# Logging configuration
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S'
-)
+# Logging
+logger = setup_logger()
 
 # Configure ChromeDriver service.
 chrome_service = Service(CHROME_DRIVER_PATH)
@@ -47,7 +44,7 @@ stop_flag = threading.Event()
 
 
 def process_url(url):
-    logging.info(f'Processing URL: {url}')
+    logger.info(f'Processing URL: {url}')
 
     # Function to load the URL
     def load_url():
@@ -55,7 +52,7 @@ def process_url(url):
             if not stop_flag.is_set():
                 driver.get(url)
         except Exception as e:
-            logging.error(f'Error while loading {url}: {e}')
+            logger.error(f'Error while loading {url}: {e}')
 
     # Create a thread to load the URL
     thread = threading.Thread(target=load_url, name=url)
@@ -66,25 +63,25 @@ def process_url(url):
         thread.join(URL_TIMEOUT)  # Timeout after 60 seconds
         if thread.is_alive():
             # If the thread is still running, set the stop flag
-            logging.warning(
+            logger.warning(
                 f'Timeout: The page at {url} took longer than {URL_TIMEOUT} '
                 f'seconds to load.'
             )
             stop_flag.set()  # Signal the thread to stop (checked in load_url)
             thread.join()    # Wait for the thread to finish cleanly
         else:
-            stop_flag.clear() # Reset the flag for the next URL
-             # Allow for any redirection to complete
+            stop_flag.clear()  # Reset the flag for the next URL
+            # Allow for any redirection to complete
             time.sleep(URL_WAIT_TIMER)
 
             # Wait for a short while to ensure any redirection completes
             time.sleep(5)
 
-            logging.info(f'Page loaded: {url}')
+            logger.info(f'Page loaded: {url}')
             # Capture the current URL after redirection
             current_url = driver.current_url
             if url != current_url:
-                logging.info(f'Redirected to: {current_url}')
+                logger.info(f'Redirected to: {current_url}')
 
             # Find all <a> tags
             link_elements = driver.find_elements(By.TAG_NAME, 'a')
@@ -99,26 +96,26 @@ def process_url(url):
                     if href and href.startswith('http'):
                         links.add(href)
                 except StaleElementReferenceException:
-                    logging.warning(
+                    logger.warning(
                         f'Warning: Element at index {idx} became stale and '
                         f'could not be accessed. Skipping this element.'
                     )
                 except Exception as e:
-                    logging.error(
+                    logger.error(
                         f'Error: Failed to process element at index {idx} '
                         f'due to: {e}.'
                     )
 
             # Output all unique links
             links = list(links)
-            logging.info('Extracted Links:')
+            logger.info('Extracted Links:')
             for link in links:
-                logging.info(link)
+                logger.info(link)
     except Exception as e:
-        logging.info(f'Error: {e}')
+        logger.info(f'Error: {e}')
 
     # Idle after processing each URL
-    logging.info('Waiting before processing next URL...')
+    logger.info('Waiting before processing next URL...')
     time.sleep(URL_INTERVAL)
 
 
@@ -127,7 +124,7 @@ try:
         for url in URLS:
             process_url(url)
 except KeyboardInterrupt:
-    logging.info('\nInterrupted by user. Cleaning up...')
+    logger.info('\nInterrupted by user. Cleaning up...')
 finally:
     driver.quit()
-    logging.info('Driver closed. Exiting program.')
+    logger.info('Driver closed. Exiting program.')

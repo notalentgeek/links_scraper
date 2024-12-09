@@ -2,7 +2,7 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 
-from utils.config import CHROME_DRIVER_PATH
+from src.utils.config import CHROME_DRIVER_PATH
 
 
 def setup_chrome_driver():

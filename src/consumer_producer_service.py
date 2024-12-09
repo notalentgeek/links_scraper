@@ -5,10 +5,10 @@ from queue import Queue
 from selenium.common.exceptions import StaleElementReferenceException
 from selenium.webdriver.common.by import By
 
-from core.consumer import Consumer
-from core.producer import Producer
-from utils.chrome_driver import setup_chrome_driver
-from utils.config import (
+from src.core.consumer import Consumer
+from src.core.producer import Producer
+from src.utils.chrome_driver import setup_chrome_driver
+from src.utils.config import (
     KAFKA_BROKER,
     KAFKA_CLIENT_ID,
     KAFKA_TOPIC,
@@ -16,7 +16,7 @@ from utils.config import (
     URL_TIMEOUT,
     URL_WAIT_TIMER,
 )
-from utils.logger import setup_logger
+from src.utils.logger import setup_logger
 
 # Logger
 logger = setup_logger()
@@ -28,7 +28,7 @@ driver = setup_chrome_driver()
 stop_flag = threading.Event()
 
 
-def main():
+def consumer_producer_service():
     """Entry point for the consumer-producer service."""
     # Initialize the consumer and producer
     consumer = Consumer(
@@ -58,17 +58,22 @@ def main():
             message = consumer.consume_message()
 
             if message:
-                url = message.get('value')
-                if url:
+                retrieved_url = message.get('value')
+                if retrieved_url:
                     # Process the URL and extract links
-                    urls = process_url(url.decode('utf-8'))
+                    processed_urls = process_url(
+                        retrieved_url.decode('utf-8')
+                    )
 
-                    for url in urls:
-                        # Send each URL to the producer
-                        producer.send_message(key='url', value=url)
+                    for processed_url in processed_urls:
+                        # Only process URL from the same domain name.
+                        if processed_url in retrieved_url:
+                            # Send each URL to the producer
+                            producer.send_message(
+                                key='url', value=processed_url)
 
-                        # Ensure the message is sent
-                        producer.flush()
+                            # Ensure the message is sent
+                            producer.flush()
             else:
                 # Wait for 1 second before checking again
                 time.sleep(1)
@@ -164,4 +169,4 @@ def process_url(url):
 
 
 if __name__ == "__main__":
-    main()
+    consumer_producer_service()

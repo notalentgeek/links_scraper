@@ -1,7 +1,7 @@
 from confluent_kafka import Producer as KafkaProducer
 
-from utils.delivery_report import delivery_report
-from utils.logger import setup_logger
+from src.utils.delivery_report import delivery_report
+from src.utils.logger import setup_logger
 
 
 class Producer:

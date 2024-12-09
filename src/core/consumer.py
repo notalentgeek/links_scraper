@@ -1,7 +1,7 @@
 from confluent_kafka import Consumer as KafkaConsumer
 from confluent_kafka import KafkaError, KafkaException
 
-from utils.logger import setup_logger
+from src.utils.logger import setup_logger
 
 
 class Consumer:

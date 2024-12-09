@@ -1,14 +1,20 @@
 import time
 
-from core.producer import Producer
-from utils.config import KAFKA_BROKER, KAFKA_CLIENT_ID, KAFKA_TOPIC, URL_INTERVAL, URLS
-from utils.logger import setup_logger
+from src.core.producer import Producer
+from src.utils.config import (
+    KAFKA_BROKER,
+    KAFKA_CLIENT_ID,
+    KAFKA_TOPIC,
+    URL_INTERVAL,
+    URLS,
+)
+from src.utils.logger import setup_logger
 
 # Logger
 logger = setup_logger()
 
 
-def main():
+def producer_service():
     """Entry point for the producer service."""
     # Initialize the producer wrapper
     producer = Producer(
@@ -39,4 +45,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    producer_service()

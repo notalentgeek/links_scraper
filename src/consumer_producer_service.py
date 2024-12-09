@@ -24,21 +24,18 @@ logger = setup_logger()
 driver = setup_chrome_driver()
 
 # A flag to indicate if the thread should stop
-# Check:
-# https://stackoverflow.com/questions/9731291/how-do-i-set-the-selenium-webdriver-get-timeout
 stop_flag = threading.Event()
 
 
 def main():
     """Entry point for the consumer-producer service."""
-    # Initialize the consumer wrapper
+    # Initialize the consumer and producer
     consumer = Consumer(
         KAFKA_BROKER,
         KAFKA_CLIENT_ID,
         KAFKA_TOPIC
     )
 
-    # Initialize the producer wrapper
     producer = Producer(
         KAFKA_BROKER,
         KAFKA_CLIENT_ID,
@@ -46,9 +43,13 @@ def main():
     )
 
     logger.info(
-        f"Starting URL consumer, listening for messages on topic: {KAFKA_TOPIC}")
+        f"Starting URL consumer, listening for messages on topic: "
+        f"{KAFKA_TOPIC}"
+    )
     logger.info(
-        f"Starting URL producer, sending messages to topic: {KAFKA_TOPIC}")
+        f"Starting URL producer, sending messages to topic: "
+        f"{KAFKA_TOPIC}"
+    )
 
     try:
         while True:
@@ -58,25 +59,23 @@ def main():
             if message:
                 url = message.get('value')
                 if url:
-                    # Scrape URL for URLs
+                    # Process the URL and extract links
                     urls = process_url(url.decode('utf-8'))
 
                     for url in urls:
-                        # Send the message
+                        # Send each URL to the producer
                         producer.send_message(key='url', value=url)
 
-                        # Flush the producer buffer
+                        # Ensure the message is sent
                         producer.flush()
-
-                        logger.info(f"Sent URL: {url}")
             else:
-                # Sleep 1 second before checking for new messages
+                # Wait for 1 second before checking again
                 time.sleep(1)
     except KeyboardInterrupt:
         logger.info("Stopping URL consumer...")
         logger.info("Stopping URL producer...")
     finally:
-        consumer.close()  # Close the consumer and release resources.
+        consumer.close()  # Close the consumer
         producer.flush()  # Ensure all messages are sent
 
 
@@ -95,47 +94,43 @@ def process_url(url):
     thread = threading.Thread(target=load_url, name=url)
     thread.start()
 
-    # Wait for the thread to complete, with a timeout of 60 seconds
+    # Wait for the thread to complete, with a timeout
     try:
         thread.join(URL_TIMEOUT)  # Timeout after 60 seconds
         if thread.is_alive():
-            # If the thread is still running, set the stop flag
+            # Log timeout and stop the thread if it's still running
             logger.warning(
                 f'Timeout: The page at {url} took longer than {URL_TIMEOUT} '
                 f'seconds to load.'
             )
-            stop_flag.set()  # Signal the thread to stop (checked in load_url)
-            thread.join()    # Wait for the thread to finish cleanly
+            stop_flag.set()  # Stop the thread
+            thread.join()    # Wait for the thread to finish
         else:
             stop_flag.clear()  # Reset the flag for the next URL
-            # Allow for any redirection to complete
+            # Allow redirection to complete
             time.sleep(URL_WAIT_TIMER)
 
-            # Wait for a short while to ensure any redirection completes
+            # Wait to ensure any redirection completes
             time.sleep(5)
 
             logger.info(f'Page loaded: {url}')
-            # Capture the current URL after redirection
             current_url = driver.current_url
             if url != current_url:
                 logger.info(f'Redirected to: {current_url}')
 
-            # Find all <a> tags
+            # Find all <a> tags and extract valid URLs
             link_elements = driver.find_elements(By.TAG_NAME, 'a')
 
-            # Extract and clean up urls
             urls = set()
             for idx, element in enumerate(link_elements):
                 try:
-                    # Try getting href before any exception occurs
                     href = element.get_attribute('href')
-                    # Ensure it's a valid URL
                     if href and href.startswith('http'):
                         urls.add(href)
                 except StaleElementReferenceException:
                     logger.warning(
                         f'Warning: Element at index {idx} became stale and '
-                        f'could not be accessed. Skipping this element.'
+                        f'could not be accessed.'
                     )
                 except Exception as e:
                     logger.error(
@@ -143,7 +138,7 @@ def process_url(url):
                         f'due to: {e}.'
                     )
 
-            # Output all unique urls
+            # Return all unique URLs
             urls = list(urls)
             logger.info('Extracted Links:')
             for url in urls:

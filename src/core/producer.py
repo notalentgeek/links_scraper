@@ -24,7 +24,7 @@ class Producer:
 
     def send_message(self, key, value, callback=delivery_report):
         """
-        Send a message to the configured Kafka topic.
+        Send a message to the Kafka topic.
 
         Args:
             key (str): The key for the Kafka message.
@@ -32,6 +32,7 @@ class Producer:
             callback (function): The delivery report callback function.
         """
         try:
+            # Send the message to Kafka
             self.producer.produce(
                 self.topic,
                 key=key,

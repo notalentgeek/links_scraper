@@ -19,7 +19,7 @@ class Consumer:
         self.conf = {
             'bootstrap.servers': broker,
             'group.id': group_id,
-            'auto.offset.reset': 'earliest',  # Start consuming from the earliest message
+            'auto.offset.reset': 'earliest',
         }
         self.consumer = KafkaConsumer(self.conf)
         self.consumer.subscribe([self.topic])
@@ -31,10 +31,11 @@ class Consumer:
         Logs the message content and offset.
 
         Returns:
-            dict: A dictionary with the message details, including key, value, and offset.
+            dict: A dictionary with the message details, including key, value,
+                and offset.
         """
         try:
-            # Poll with a timeout of 1 second
+            # Poll for new messages with a timeout of 1 second
             message = self.consumer.poll(timeout=1.0)
             if message is None:
                 self.logger.info("No message received within the timeout.")
@@ -43,7 +44,7 @@ class Consumer:
 
             if message.error():
                 if message.error().code() == KafkaError._PARTITION_EOF:
-                    # End of partition reached
+                    # Log end of partition
                     self.logger.info(
                         f"End of partition reached {message.partition}, "
                         f"offset {message.offset()}"
@@ -53,6 +54,7 @@ class Consumer:
             else:
                 self.logger.info(
                     f"Consumed message: {message.key()}: {message.value()}")
+
                 return {
                     'key': message.key(),
                     'value': message.value(),

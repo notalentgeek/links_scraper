@@ -57,7 +57,7 @@ To run the services, follow these steps:
     This will build the necessary Docker images and start the services in the background. The following services will be created:
     - **Kafka**: Messaging service for communication between the producer and consumer services.
     - **MongoDB**: Stores the scraped URLs and metadata.
-    - **Python producer service**: Runs the Python scripts to scrape URLs and send data to Kafka.
+    - **Python Producer Service**: Executes Python scripts that periodically send messages to the messaging service.
 
 2. **Run the Python consumer-producer service**:
     After starting the services, run the Python script to start processing the scraped URLs. You can specify the number of consumer-producer processes you want to run. For example:

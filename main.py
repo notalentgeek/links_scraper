@@ -1,3 +1,4 @@
+import threading  # Import threading module for timeout
 import time  # Import time module
 
 from selenium import webdriver
@@ -5,10 +6,9 @@ from selenium.common.exceptions import StaleElementReferenceException, TimeoutEx
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions
-from selenium.webdriver.support.ui import WebDriverWait
 
-URLS_TIMEOUT = 1
+URL_TIMEOUT = 10
+URL_WAIT_TIMER = 5  # Need to be smaller than URL_TIMEOUT
 
 # List of URLs to process
 urls = ['https://shopee.tw', 'https://www.naver.com/']
@@ -25,68 +25,83 @@ driver_path = "/usr/local/bin/chromedriver"
 service = Service(driver_path)
 driver = webdriver.Chrome(service=service, options=chrome_options)
 
+# A flag to indicate if the thread should stop
+stop_flag = threading.Event()
+
 
 def process_url(url):
-    try:
-        # Open the URL
-        driver.get(url)
-
-        # Wait for the page to load (or until a specific element is present)
+    # Function to load the URL
+    def load_url():
         try:
-            WebDriverWait(driver, URLS_TIMEOUT).until(
-                lambda driver: driver.execute_script(
-                    "return document.readyState") == "complete"
-            )
-        except TimeoutException:
-            raise TimeoutException(f"Timeout: The page at {
-                                   url} took longer than {URLS_TIMEOUT} seconds to load.")
+            if not stop_flag.is_set():
+                driver.get(url)
+        except Exception as e:
+            print(f"Error while loading {url}: {e}")
 
-        # Wait for a short while to ensure any redirection completes
-        time.sleep(5)
+    # Create a thread to load the URL
+    thread = threading.Thread(target=load_url, name=url)
+    thread.start()
 
-        # Capture the current URL after redirection
-        current_url = driver.current_url
-        if url != current_url:
-            print(f"Redirected to: {current_url}")
+    # Wait for the thread to complete, with a timeout of 60 seconds
+    try:
+        thread.join(URL_TIMEOUT)  # Timeout after 60 seconds
+        if thread.is_alive():
+            # If the thread is still running, set the stop flag
+            print(f"Timeout: The page at {url} took longer than {
+                  URL_TIMEOUT} seconds to load.")
+            stop_flag.set()  # Signal the thread to stop (checked in `load_url`)
+            thread.join()  # Wait for the thread to finish cleanly
+        else:
+            stop_flag.clear()  # Reset the flag for the next URL
+            time.sleep(URL_WAIT_TIMER)  # Allow for any redirection to complete
 
-        # Find all <a> tags
-        link_elements = driver.find_elements(By.TAG_NAME, "a")
+            # Wait for a short while to ensure any redirection completes
+            time.sleep(5)
 
-        # Extract and clean up links
-        links = set()
-        for idx, element in enumerate(link_elements):
-            try:
-                # Try getting href before any exception occurs
-                href = element.get_attribute("href")
-                if href and href.startswith("http"):  # Ensure it's a valid URL
-                    links.add(href)
-            except StaleElementReferenceException:
-                # Log a proper error message
-                print(
-                    f"Warning: Element at index {
-                        idx} became stale and could not be accessed. Skipping this element."
-                )
-            except Exception as e:
-                # Log unexpected errors with details
-                print(f"Error: Failed to process element at index {
-                    idx} due to: {e}.")
+            print(f"Page loaded: {url}")
+            # Capture the current URL after redirection
+            current_url = driver.current_url
+            if url != current_url:
+                print(f"Redirected to: {current_url}")
 
-        # Output all unique links
-        links = list(links)
-        print("Extracted Links:")
-        for link in links:
-            print(link)
-    finally:
-        # After processing each URL, idle for 1 minute
-        print("Waiting for 1 minute before processing next URL...")
-        time.sleep(1)  # Idle for 1 minute
+            # Find all <a> tags
+            link_elements = driver.find_elements(By.TAG_NAME, "a")
+
+            # Extract and clean up links
+            links = set()
+            for idx, element in enumerate(link_elements):
+                try:
+                    # Try getting href before any exception occurs
+                    href = element.get_attribute("href")
+                    # Ensure it's a valid URL
+                    if href and href.startswith("http"):
+                        links.add(href)
+                except StaleElementReferenceException:
+                    # Log a proper error message
+                    print(f"Warning: Element at index {
+                          idx} became stale and could not be accessed. Skipping this element.")
+                except Exception as e:
+                    # Log unexpected errors with details
+                    print(f"Error: Failed to process element at index {
+                          idx} due to: {e}.")
+
+            # Output all unique links
+            links = list(links)
+            print("Extracted Links:")
+            for link in links:
+                print(link)
+
+    except Exception as e:
+        print(f"Error: {e}")
+
+    # After processing each URL, idle for 1 minute
+    print("Waiting for 1 minute before processing next URL...")
+    time.sleep(1)  # Idle for 1 minute
 
 
 # Iterate over each URL in the list
 for url in urls:
     process_url(url)
 
-
-# finally:
-#     # Clean up
-#     driver.quit()
+# Clean up
+driver.quit()

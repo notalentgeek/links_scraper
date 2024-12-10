@@ -22,18 +22,12 @@ from src.utils.string import get_domain
 # Logger
 logger = setup_logger()
 
-# Logger
-db = setup_mongodb()
-
-# Chrome Driver
-driver = setup_chrome_driver()
-
-# A flag to indicate if the thread should stop
-stop_flag = threading.Event()
-
 
 def consumer_producer_service(same_domain_only):
     '''Entry point for the consumer-producer service.'''
+    # Logger
+    db = setup_mongodb()
+
     # Initialize the consumer and producer
     consumer = Consumer(
         KAFKA_BROKER,
@@ -100,6 +94,48 @@ def consumer_producer_service(same_domain_only):
 
 
 def process_url(url):
+    '''
+    Process the given URL by visiting it with a Chrome WebDriver,
+    extracting all valid hyperlinks, and returning them.
+
+    This function uses a separate thread to load the URL, with a timeout
+    to prevent the process from hanging on slow or unresponsive pages.
+    Extracted URLs are retrieved using a queue and returned as a list.
+
+    Args:
+        url (str): The URL to process.
+
+    Returns:
+        list: A list of extracted URLs found on the page, or an empty list if:
+            - The page fails to load within the specified timeout.
+            - The URL fails to load due to an error.
+            - No valid URLs are found.
+
+    Behavior:
+        - Uses a Chrome WebDriver to load the page.
+        - Ensures the process stops gracefully if the timeout is exceeded.
+        - Filters out invalid or non-HTTP URLs.
+        - Logs each step of the process for traceability.
+        - Handles potential exceptions such as stale element references or
+          navigation errors.
+
+    Notes:
+        - This function requires a properly configured Chrome WebDriver.
+        - The WebDriver instance and threading flag are initialized within
+          the function scope for isolation.
+        - The function captures redirected URLs and logs them for debugging.
+
+    Example:
+        >>> extracted_urls = process_url("https://example.com")
+        >>> print(extracted_urls)
+        ['https://example.com/page1', 'https://example.com/page2']
+    '''
+    # Chrome Driver
+    driver = setup_chrome_driver()
+
+    # A flag to indicate if the thread should stop
+    stop_flag = threading.Event()
+
     logger.info(f'Processing URL: {url}')
 
     # Function to load the URL

@@ -2,7 +2,7 @@ import time
 
 from src.core.producer import Producer
 from src.utils.config import (
-    KAFKA_BROKER,
+    KAFKA_BROKER_DOCKER_COMPOSE,
     KAFKA_CLIENT_ID,
     KAFKA_TOPIC,
     URL_INTERVAL,
@@ -17,8 +17,9 @@ logger = setup_logger()
 def producer_service():
     '''Entry point for the producer service.'''
     # Initialize the producer wrapper
+    # Change to KAFKA_BROKER if you want to use locally!
     producer = Producer(
-        KAFKA_BROKER,
+        KAFKA_BROKER_DOCKER_COMPOSE,
         KAFKA_CLIENT_ID,
         KAFKA_TOPIC
     )

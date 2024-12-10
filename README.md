@@ -49,7 +49,8 @@ An event-driven architecture powered by Apache Kafka to handle high-volume scrap
 
 To run the services, follow these steps:
 
-1. **Build and start the services using Docker Compose**:
+1. **Download ChromeDriver and save it in the `bin` directory.**
+2. **Build and start the services using Docker Compose**:
     ```bash
     docker-compose up -d --build
     ```
@@ -57,17 +58,147 @@ To run the services, follow these steps:
     This will build the necessary Docker images and start the services in the background. The following services will be created:
     - **Kafka**: Messaging service for communication between the producer and consumer services.
     - **MongoDB**: Stores the scraped URLs and metadata.
-    - **Python Producer Service**: Executes Python scripts that periodically send messages to the messaging service.
+    - ~~**Python Producer Service**: Executes Python scripts that periodically send messages to the messaging service.~~
 
-2. **Run the Python consumer-producer service**:
-    After starting the services, run the Python script to start processing the scraped URLs. You can specify the number of consumer-producer processes you want to run. For example:
+3. **Run the Python consumer-producer service**:
+    After starting the services, run the Python script to start processing the scraped URLs. You can specify the number of producer process and consumer-producer processes you want to run. For examples:
+
+    ```bash
+    python3 main.py --producer=1 --conprod=3
+    ```
+
+    This command will launch **1 producer process and 3 consumer-producer processes**.
 
     ```bash
     python3 main.py --conprod=3 --same-domain-name
     ```
 
-    This will start **3 consumer-producer processes**. You can adjust the number as needed based on the scale of your scraping task.
+    This command will launch **3 consumer-producer processes**.
+
+    You can customize the number based on the scale of your scraping task. By default, running the `python3 main.py` command starts a single producer service and one consumer-producer service.
 
 ## Design Diagram
 
 ![Design Diagram](http://www.plantuml.com/plantuml/proxy?src=https://raw.githubusercontent.com/notalentgeek/links_scraper/refs/heads/master/umls/design_diagram.uml)
+
+## Example Result From MongoDB
+
+```text
+[
+  {
+    _id: ObjectId('67579d8bb5fd82c778c6f503'),
+    retrieved_url: 'https://shopee.tw',
+    found_url: 'https://shopee.tw/buyer/login/otp?next=https%3A%2F%2Fshopee.tw%2F'
+  },
+  {
+    _id: ObjectId('67579d8bb5fd82c778c6f504'),
+    retrieved_url: 'https://shopee.tw',
+    found_url: 'https://careers.shopee.com/jobs'
+  },
+  {
+    _id: ObjectId('67579d8bb5fd82c778c6f505'),
+    retrieved_url: 'https://shopee.tw',
+    found_url: 'https://linkedin.com/company/shopee'
+  },
+  {
+    _id: ObjectId('67579d8bb5fd82c778c6f506'),
+    retrieved_url: 'https://shopee.tw',
+    found_url: 'https://shopee.com.br/'
+  },
+  {
+    _id: ObjectId('67579d8bb5fd82c778c6f507'),
+    retrieved_url: 'https://shopee.tw',
+    found_url: 'https://help.shopee.tw/portal/article/79725-[%e8%81%af%e7%b5%a1%e5%ae%a2%e6%9c%8d]-%e5%a6%82%e4%bd%95%e8%81%af%e7%b5%a1%e8%9d%a6%e7%9a%ae%e5%ae%a2%e6%9c%8d%3F'
+  },
+  {
+    _id: ObjectId('67579d8bb5fd82c778c6f508'),
+    retrieved_url: 'https://shopee.tw',
+    found_url: 'https://shopee.vn/'
+  },
+  {
+    _id: ObjectId('67579d8bb5fd82c778c6f509'),
+    retrieved_url: 'https://shopee.tw',
+    found_url: 'https://help.shopee.tw/portal/article/77266'
+  },
+  {
+    _id: ObjectId('67579d8bb5fd82c778c6f50a'),
+    retrieved_url: 'https://shopee.tw',
+    found_url: 'https://shopee.tw/m/Anti-fraud-advocacy'
+  },
+  {
+    _id: ObjectId('67579d8bb5fd82c778c6f50b'),
+    retrieved_url: 'https://shopee.tw',
+    found_url: 'https://careers.shopee.com/about/'
+  },
+  {
+    _id: ObjectId('67579d8bb5fd82c778c6f50c'),
+    retrieved_url: 'https://shopee.tw',
+    found_url: 'https://help.shopee.tw/portal/article/80020-[%E8%A8%82%E5%96%AE%E4%BF%9D%E9%9A%9C]-%E4%BB%80%E9%BA%BC%E6%98%AF%E5%BB%B6%E9%95%B7%E8%A8%82%E5%96%AE%E6%92%A5%E6%AC%BE'
+  },
+  {
+    _id: ObjectId('67579d8bb5fd82c778c6f50d'),
+    retrieved_url: 'https://shopee.tw',
+    found_url: 'https://shopee.tw/mall/'
+  },
+  {
+    _id: ObjectId('67579d8bb5fd82c778c6f50e'),
+    retrieved_url: 'https://shopee.tw',
+    found_url: 'https://shopee.com.co/'
+  },
+  {
+    _id: ObjectId('67579d8bb5fd82c778c6f50f'),
+    retrieved_url: 'https://shopee.tw',
+    found_url: 'https://help.shopee.tw/portal/article/79770-[%E8%9D%A6%E7%9A%AE%E9%8C%A2%E5%8C%85]-%E4%BB%80%E9%BA%BC%E6%98%AF%E8%9D%A6%E7%9A%AE%E9%8C%A2%E5%8C%85'
+  },
+  {
+    _id: ObjectId('67579d8bb5fd82c778c6f510'),
+    retrieved_url: 'https://shopee.tw',
+    found_url: 'https://page.line.me/shopee?openQrModal=true'
+  },
+  {
+    _id: ObjectId('67579d8bb5fd82c778c6f511'),
+    retrieved_url: 'https://shopee.tw',
+    found_url: 'https://help.shopee.tw/tw/s'
+  },
+  {
+    _id: ObjectId('67579d8bb5fd82c778c6f512'),
+    retrieved_url: 'https://shopee.tw',
+    found_url: 'https://shopee.co.th/'
+  },
+  {
+    _id: ObjectId('67579d8bb5fd82c778c6f513'),
+    retrieved_url: 'https://shopee.tw',
+    found_url: 'https://help.shopee.tw/portal/article/80089-[%E6%96%B0%E6%89%8B%E4%B8%8A%E8%B7%AF]-%E8%9D%A6%E7%9A%AE%E8%B3%BC%E7%89%A9%E6%94%AF%E6%8F%B4%E5%93%AA%E4%BA%9B%E4%BB%98%E6%AC%BE%E6%96%B9%E5%BC%8F%E8%88%87%E4%BB%98%E6%AC%BE%E9%87%91%E9%A1%8D%E4%B8%8A%E9%99%90?'
+  },
+  {
+    _id: ObjectId('67579d8bb5fd82c778c6f514'),
+    retrieved_url: 'https://shopee.tw',
+    found_url: 'https://shopee.com.mx/'
+  },
+  {
+    _id: ObjectId('67579d8bb5fd82c778c6f515'),
+    retrieved_url: 'https://shopee.tw',
+    found_url: 'https://shopee.com.my/'
+  },
+  {
+    _id: ObjectId('67579d8bb5fd82c778c6f516'),
+    retrieved_url: 'https://shopee.tw',
+    found_url: 'https://shopee.tw/buyer/signup?next=https%3A%2F%2Fshopee.tw%2F'
+  }
+]
+```
+
+## Appendixes
+
+### Appendix A: Accessing MongoDB
+
+```console
+docker-compose exec mongo bash
+
+# In MongoDB Container
+mongosh -u username -p password --authenticationDatabase admin
+
+# In Mongosh Shell
+use urls_scraper;
+db.urls.find();
+```

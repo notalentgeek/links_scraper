@@ -8,26 +8,15 @@ services:
     networks:
       - urls-scraper
 
-  # mongo:
-  #   image: mongo:latest
-  #   environment:
-  #     MONGO_INITDB_ROOT_USERNAME: username
-  #     MONGO_INITDB_ROOT_PASSWORD: password
-  #   ports:
-  #     - 27017:27017
-  #   networks:
-  #     - urls-scraper
-
-  # app:
-  #   build: .
-  #   networks:
-  #     - urls-scraper
-  #   volumes:
-  #     - ./:/app
-  #   depends_on:
-  #     - kafka
-  #     - mongo
-  #   command: ["python3", "main.py", "--producer=1"]
+  mongo:
+    image: mongo:latest
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: username
+      MONGO_INITDB_ROOT_PASSWORD: password
+    ports:
+      - 27017:27017
+    networks:
+      - urls-scraper
 
 networks:
   urls-scraper:

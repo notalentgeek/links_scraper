@@ -11,6 +11,5 @@ URLS = ['https://shopee.tw', 'https://www.naver.com/']
 
 # Kafka configuration
 KAFKA_BROKER = 'localhost:9092'
-KAFKA_BROKER_DOCKER_COMPOSE = 'kafka:9092'  # Development purpose only!
 KAFKA_CLIENT_ID = 'url-producer'
 KAFKA_TOPIC = 'urls'

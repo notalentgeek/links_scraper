@@ -172,7 +172,6 @@ def process_url(url):
 
                 # Return URLs through the queue
                 queue.put(list(urls))
-
             else:
                 logger.info(f'Stop flag is set, not loading the URL: {url}')
         except Exception as e:

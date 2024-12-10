@@ -22,6 +22,9 @@ wheels/
 *.pyc
 db.sqlite3
 
+# Executables
+bin/*
+
 # Flask Stuffs
 instance/
 
